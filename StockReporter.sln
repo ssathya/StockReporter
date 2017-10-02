@@ -5,6 +5,20 @@ VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DisplayData", "DisplayData\DisplayData.csproj", "{C099A945-287C-4A78-85FB-58489873BFFD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ListedSecurities", "ListedSecurities\ListedSecurities.csproj", "{1BC33603-C99A-48B8-9E65-83E60D4A7055}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{44B7898A-1386-4463-9F7D-5E28CC4D3B3B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ListedSecuritiesTests", "ListedSecuritiesTests\ListedSecuritiesTests.csproj", "{4A8A7764-8C97-4E93-9AEA-9D066AD33412}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{395420C3-DBEF-48F0-8119-720960302219}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{46795C5D-A7C8-4176-AC87-B4DC736CC38B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DalImplementation", "DalImplementation\DalImplementation.csproj", "{B54E86E6-55F0-4D68-AE6D-494B87ED27E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DALTests", "DALTests\DALTests.csproj", "{04441408-9486-4FE4-B54D-7D44E55B869D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +29,35 @@ Global
 		{C099A945-287C-4A78-85FB-58489873BFFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C099A945-287C-4A78-85FB-58489873BFFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C099A945-287C-4A78-85FB-58489873BFFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BC33603-C99A-48B8-9E65-83E60D4A7055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BC33603-C99A-48B8-9E65-83E60D4A7055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BC33603-C99A-48B8-9E65-83E60D4A7055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BC33603-C99A-48B8-9E65-83E60D4A7055}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A8A7764-8C97-4E93-9AEA-9D066AD33412}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A8A7764-8C97-4E93-9AEA-9D066AD33412}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A8A7764-8C97-4E93-9AEA-9D066AD33412}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A8A7764-8C97-4E93-9AEA-9D066AD33412}.Release|Any CPU.Build.0 = Release|Any CPU
+		{395420C3-DBEF-48F0-8119-720960302219}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{395420C3-DBEF-48F0-8119-720960302219}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{395420C3-DBEF-48F0-8119-720960302219}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{395420C3-DBEF-48F0-8119-720960302219}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B54E86E6-55F0-4D68-AE6D-494B87ED27E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B54E86E6-55F0-4D68-AE6D-494B87ED27E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B54E86E6-55F0-4D68-AE6D-494B87ED27E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B54E86E6-55F0-4D68-AE6D-494B87ED27E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04441408-9486-4FE4-B54D-7D44E55B869D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04441408-9486-4FE4-B54D-7D44E55B869D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04441408-9486-4FE4-B54D-7D44E55B869D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04441408-9486-4FE4-B54D-7D44E55B869D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4A8A7764-8C97-4E93-9AEA-9D066AD33412} = {44B7898A-1386-4463-9F7D-5E28CC4D3B3B}
+		{395420C3-DBEF-48F0-8119-720960302219} = {46795C5D-A7C8-4176-AC87-B4DC736CC38B}
+		{B54E86E6-55F0-4D68-AE6D-494B87ED27E2} = {46795C5D-A7C8-4176-AC87-B4DC736CC38B}
+		{04441408-9486-4FE4-B54D-7D44E55B869D} = {44B7898A-1386-4463-9F7D-5E28CC4D3B3B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {26E4EADA-CB7F-45B0-9DB5-D13CC2A9ACF7}
