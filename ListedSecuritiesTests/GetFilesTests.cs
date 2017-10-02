@@ -10,7 +10,7 @@ namespace ListedSecuritiesTests
         #region Public Methods
 
         [TestMethod]
-        public void TestMethod1()
+        public void ReadFileFromExternalSourceTest()
         {
             var temppath = Path.GetTempPath();
             var fileName = @"symboldirectory/nasdaqlisted.txt";

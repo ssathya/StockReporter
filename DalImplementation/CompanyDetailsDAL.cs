@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Models;
 using Models.Model;
 using System;
 using System.Linq;
@@ -18,20 +19,23 @@ namespace DalImplementation
         public void Add(CompanyDetail entity)
         {
             _context.Add(entity);
-            _context.SaveChanges();
+            var result = SaveAsync();
         }
 
         public void Delete(CompanyDetail entity)
         {
-            Delete(entity.Id);
+            _context.Entry(entity).State = EntityState.Deleted;
+            //_context.CompanyDetails.Remove(entity);
+            var result = SaveAsync();
         }
 
         public void Delete(int id)
         {
-            var cd = new CompanyDetail { Id = id };
-            _context.CompanyDetails.Attach(cd);
-            _context.CompanyDetails.Remove(cd);
-            var result = SaveAsync();
+            var cd = _context.CompanyDetails.FirstOrDefault(r => r.Id == id);
+            if (cd != null)
+            {
+                Delete(cd);
+            }
         }
 
         public IQueryable<CompanyDetail> GetAll()
