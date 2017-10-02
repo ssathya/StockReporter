@@ -11,14 +11,16 @@ namespace Models
 
         T Get(K BusinessKey);
 
-        void Add(T entity);
+        T GetWithoutTracking(K BusinessKey);
 
-        void Delete(T entity);
+        void Add(T entity, bool commit = true);
 
-        void Delete(int id);
+        void Delete(T entity, bool commit = true);
+
+        void Delete(int id, bool commit = true);
 
         Task<bool> SaveAsync();
 
-        void Update(T entity);
+        void Update(T entity, bool commit = true);
     }
 }

@@ -9,32 +9,38 @@ namespace DalImplementation
 {
     public class CompanyDetailsDAL : IGenericRepository<CompanyDetail, string>
     {
-        private StockReporterContext _context;
+        private readonly StockReporterContext _context;
 
         public CompanyDetailsDAL(StockReporterContext context)
         {
             _context = context;
         }
 
-        public void Add(CompanyDetail entity)
+        public void Add(CompanyDetail entity, bool commit = true)
         {
             _context.Add(entity);
-            var result = SaveAsync();
+            if (commit)
+            {
+                var result = SaveAsync().Result;
+            }
         }
 
-        public void Delete(CompanyDetail entity)
+        public void Delete(CompanyDetail entity, bool commit = true)
         {
             _context.Entry(entity).State = EntityState.Deleted;
             //_context.CompanyDetails.Remove(entity);
-            var result = SaveAsync();
+            if (commit)
+            {
+                var result = SaveAsync().Result;
+            }
         }
 
-        public void Delete(int id)
+        public void Delete(int id, bool commit = true)
         {
             var cd = _context.CompanyDetails.FirstOrDefault(r => r.Id == id);
             if (cd != null)
             {
-                Delete(cd);
+                Delete(cd, commit);
             }
         }
 
@@ -55,21 +61,34 @@ namespace DalImplementation
             return retvalue;
         }
 
+        public CompanyDetail GetWithoutTracking(string symbol)
+        {
+            var retvalue = _context.CompanyDetails.AsNoTracking().FirstOrDefault(r => r.Symbol.Equals(symbol));
+            return retvalue;
+        }
+
         public async Task<bool> SaveAsync()
         {
             return await _context.SaveChangesAsync() >= 1 ? true : false;
         }
 
-        public void Update(CompanyDetail entity)
+        public void Update(CompanyDetail entity, bool commit = true)
         {
             var record = GetAsync(entity.Id).Result;
             if (record == null)
             {
                 return;
             }
-            record = entity;
+            _context.Entry(record).CurrentValues.SetValues(entity);
+            //record.SecurityName = entity.SecurityName;
+            //record.Symbol = entity.Symbol;
+            //record.IsMutualFund = entity.IsMutualFund;
+            //record.IsExTrdFund = entity.IsExTrdFund;
             _context.Update(record);
-            var x = SaveAsync().Result;
+            if (commit)
+            {
+                var x = SaveAsync().Result;
+            }
         }
     }
 }

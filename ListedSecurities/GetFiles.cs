@@ -1,6 +1,7 @@
 ﻿using FluentFTP;
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace ListedSecurities
@@ -52,6 +53,19 @@ namespace ListedSecurities
             {
                 throw new InvalidOperationException("External URL or File Name not set");
             }
+            if (ExternalUrl.StartsWith("ftp", StringComparison.CurrentCulture))
+            {
+                return await GetFtpData();
+            }
+            return await GetHttpData();
+        }
+
+        #endregion Public Methods
+
+        #region Private Methods
+
+        private async Task<bool> GetFtpData()
+        {
             using (var client = new FtpClient(ExternalUrl))
             {
                 client.Connect();
@@ -65,6 +79,27 @@ namespace ListedSecurities
             }
         }
 
-        #endregion Public Methods
+        private async Task<bool> GetHttpData()
+        {
+            using (var client = new HttpClient())
+            {
+                var localPath = Path.Combine(Destination, FileName);
+                using (var response = await client.GetAsync(ExternalUrl))
+                {
+                    using (var content = response.Content)
+                    {
+                        var result = await content.ReadAsStringAsync();
+                        using (var writer = new StreamWriter(localPath))
+                        {
+                            var writeResult = writer.WriteAsync(result);
+                            writeResult.Wait();
+                            return writeResult.IsCompleted;
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion Private Methods
     }
 }
