@@ -11,9 +11,10 @@ using System;
 namespace Models.Migrations
 {
     [DbContext(typeof(StockReporterContext))]
-    partial class StockReporterContextModelSnapshot : ModelSnapshot
+    [Migration("20171003021016_Added Sector and Industry")]
+    partial class AddedSectorandIndustry
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

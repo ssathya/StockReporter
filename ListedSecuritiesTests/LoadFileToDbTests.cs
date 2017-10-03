@@ -44,7 +44,7 @@ namespace ListedSecuritiesTests
             fileName = temppath + fileName;
             string[] columnNames = { "Symbol", "Security Name" };
             var lftdb = new LoadFileToDb(fileName, columnNames);
-            var loadResult = lftdb.ParseFile();
+            var loadResult = lftdb.ParseSecurityListingFile();
             Assert.IsTrue(loadResult);
         }
 
@@ -128,6 +128,30 @@ namespace ListedSecuritiesTests
             Assert.AreEqual(1, rokuCount);
         }
 
+        [TestMethod]
+        public void UpdateDatabaseWithCompanyDetailsTest()
+        {
+            ClearTable();
+            string[] columnNames = { "NASDAQ Symbol", "Security Name" };
+            var fileName = @"symboldirectory/otherlisted.txt";
+            LoadFileToDb lftdb = PrepareCompanyDetailsList(columnNames, ref fileName);
+
+            columnNames = new string[] { "Symbol", "Sector", "industry", "IPOyear" };
+            var temppath = Path.GetTempPath();
+            fileName = @"symboldirectory/NYSECompanyList.csv";
+            var delimiter = ",";
+            fileName = temppath + fileName;
+            lftdb.FileName = fileName;
+            lftdb.Columns = columnNames;
+            lftdb.Delimiter = delimiter;
+            var loadResult = lftdb.ParseCompanyDetailsFile();
+            var resultCount = lftdb.SaveRecordsToDb(_repository);
+            Assert.IsTrue(loadResult);
+            var testRcd = _context.CompanyDetails.FirstOrDefault(s => s.Symbol.Equals("ICE"));
+            Assert.AreEqual(2005, testRcd.IPOyear);
+            Assert.AreEqual("Finance", testRcd.Sector);
+        }
+
         #endregion Public Methods
 
         #region Private Methods
@@ -143,7 +167,7 @@ namespace ListedSecuritiesTests
                 IsETF = isETF,
                 IsMutaulFund = isMutalFund
             };
-            var loadResult = lftdb.ParseFile();
+            var loadResult = lftdb.ParseSecurityListingFile();
             return lftdb;
         }
 
