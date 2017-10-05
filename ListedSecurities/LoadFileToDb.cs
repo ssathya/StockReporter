@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ListedSecurities
 {
@@ -106,17 +107,18 @@ namespace ListedSecurities
                 throw new Exception("Columns to read not set");
             }
             SetIdentifierFields(out string symbol, out string ipoYear,
-                out string sector, out string industry);
+                out string sector, out string industry, out string name);
             using (var reader = File.OpenText(FileName))
             {
                 var csv = new CsvReader(reader);
                 ConfigureReader(csv);
                 while (csv.Read())
                 {
-                    ExtractDataFromRecord(symbol, ipoYear, sector, industry, csv,
+                    ExtractDataFromRecord(symbol, ipoYear, sector, industry, name, csv,
                         out string securitySymbol, out string securitySector,
                         out string securityIndustry,
-                        out int securityIPOYear);
+                        out int securityIPOYear,
+                        out string securityName);
                     if (string.IsNullOrWhiteSpace(securitySector) ||
                         string.IsNullOrWhiteSpace(securityIndustry) ||
                         securitySector.Equals("n/a") ||
@@ -130,7 +132,8 @@ namespace ListedSecurities
                             Symbol = securitySymbol,
                             IPOyear = securityIPOYear,
                             Sector = securitySector,
-                            Industry = securityIndustry
+                            Industry = securityIndustry,
+                            SecurityName = securityName
                         };
                         CompanyDetails.Add(cd);
                         counter++;
@@ -177,7 +180,19 @@ namespace ListedSecurities
                 {
                     CompanyDetail newRecord = BuildCompanyDetails(csv, symbol, securityName);
                     newRecord.IsExTrdFund = IsETF == true ? IsETF : newRecord.IsExTrdFund;
-                    CompanyDetails.Add(newRecord);
+                    var oldRecord = CompanyDetails.Find(cd => cd.Symbol.Equals(newRecord));
+                    if (oldRecord != null)
+                    {
+                        oldRecord.Industry = string.IsNullOrWhiteSpace(newRecord.Industry) ? oldRecord.Industry : newRecord.Industry;
+                        oldRecord.IPOyear = newRecord.IPOyear == 0 ? oldRecord.IPOyear : newRecord.IPOyear;
+                        oldRecord.IsExTrdFund = newRecord.IsExTrdFund == false ? oldRecord.IsExTrdFund : newRecord.IsExTrdFund;
+                        oldRecord.IsMutualFund = newRecord.IsMutualFund == false ? oldRecord.IsMutualFund : newRecord.IsMutualFund;
+                        oldRecord.Sector = string.IsNullOrWhiteSpace(newRecord.Sector) ? oldRecord.Sector : newRecord.Sector;
+                    }
+                    else
+                    {
+                        CompanyDetails.Add(newRecord);
+                    }
                 }
             }
             return true;
@@ -190,34 +205,50 @@ namespace ListedSecurities
         /// <returns></returns>
         public int SaveRecordsToDb(IGenericRepository<CompanyDetail, string> repository)
         {
+            List<Task<bool>> dbUpdateResults = new List<Task<bool>>();
             var counter = 0;
             bool result;
             foreach (var companyDetail in CompanyDetails)
             {
-                var oldRecord = repository.Get(companyDetail.Symbol);
-                if (oldRecord != null)
+                if (string.IsNullOrWhiteSpace(companyDetail.Symbol) ||
+                string.IsNullOrWhiteSpace(companyDetail.SecurityName))
                 {
-                    companyDetail.Id = oldRecord.Id;
-                    repository.Update(companyDetail, false);
+                    Console.WriteLine("Skipping record");
                 }
                 else
                 {
                     repository.Add(companyDetail, false);
                 }
-                counter++;
+                if (++counter % 512 == 0)
+                {
+                    while (dbUpdateResults.Count >= 1)
+                    {
+                        RemoveCompletedTasks(dbUpdateResults);
+                    }
+                    dbUpdateResults.Add(repository.SaveAsync());
+                    Console.WriteLine($"Uploaded {counter} rows");
+                }
+            }
+            Console.WriteLine("Waiting for save to complete");
+            while (dbUpdateResults.Count != 0)
+            {
+                RemoveCompletedTasks(dbUpdateResults);
             }
             result = repository.SaveAsync().Result;
+            Console.WriteLine("Database update completed");
             return counter;
         }
 
-        /// <summary>
-        /// Updates the company details.
-        /// </summary>
-        /// <param name="repository">The repository.</param>
-        /// <returns></returns>
-        public int UpdateCompanyDetails(IGenericRepository<CompanyDetail, string> repository)
+        private static void RemoveCompletedTasks(List<Task<bool>> dbUpdateResults)
         {
-            return 0;
+            var completedTasks = dbUpdateResults.
+                                    FirstOrDefault(t => t.IsCompleted == true);
+            while (completedTasks != null)
+            {
+                dbUpdateResults.Remove(completedTasks);
+                completedTasks = dbUpdateResults.
+                FirstOrDefault(t => t.IsCompleted == true);
+            }
         }
 
         #endregion Public Methods
@@ -272,15 +303,16 @@ namespace ListedSecurities
         /// <param name="securityIndustry">The security industry.</param>
         /// <param name="securityIPOYear">The security ipo year.</param>
         private void ExtractDataFromRecord(string symbol, string ipoYear, string sector,
-                                            string industry, CsvReader csv, out string securitySymbol,
+                                            string industry, string name, CsvReader csv, out string securitySymbol,
                                             out string securitySector, out string securityIndustry,
-                                            out int securityIPOYear)
+                                            out int securityIPOYear, out string securityName)
         {
             securitySymbol = csv.GetField<string>(symbol);
             var securityIPO = csv.GetField<string>(ipoYear);
             securitySector = csv.GetField<string>(sector);
             securityIndustry = csv.GetField<string>(industry);
             securitySymbol = ReplaceCart(securitySymbol);
+            securityName = csv.GetField<string>(name);
             securityIPOYear = 0;
             int.TryParse(securityIPO, out securityIPOYear);
             securityIPOYear = securityIPOYear == 0 ? 1950 : securityIPOYear;
@@ -288,7 +320,7 @@ namespace ListedSecurities
 
         private string ReplaceCart(string input)
         {
-            string pattern = @"\^"; ;
+            string pattern = @"\^";
             string substitution = @"-";
             var regex = new Regex(pattern);
             return regex.Replace(input, substitution);
@@ -302,16 +334,18 @@ namespace ListedSecurities
         /// <param name="sector">The sector.</param>
         /// <param name="industry">The industry.</param>
         private void SetIdentifierFields(out string symbol, out string ipoYear, out string sector,
-            out string industry)
+            out string industry, out string name)
         {
             symbol = Columns.FirstOrDefault(c => c.Contains("Symbol"));
             ipoYear = Columns.FirstOrDefault(c => c.Contains("IPOyear"));
             sector = Columns.FirstOrDefault(c => c.Contains("Sector"));
             industry = Columns.FirstOrDefault(c => c.Contains("industry"));
+            name = Columns.FirstOrDefault(c => c.Contains("Name"));
             symbol = string.IsNullOrWhiteSpace(symbol) ? "Symbol" : symbol;
             ipoYear = string.IsNullOrWhiteSpace(ipoYear) ? "IPOyear" : ipoYear;
             sector = string.IsNullOrWhiteSpace(sector) ? "Sector" : sector;
             industry = string.IsNullOrWhiteSpace(industry) ? "industry" : industry;
+            name = string.IsNullOrWhiteSpace(name) ? "Name" : name;
         }
 
         /// <summary>

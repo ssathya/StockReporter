@@ -49,6 +49,21 @@ namespace ListedSecuritiesTests
         }
 
         [TestMethod]
+        public void SaveETFRecordsToDbEmptyTableTest()
+        {
+            isETF = true;
+            ClearTable();
+            string[] columnNames = { "Symbol", "Name" };
+            var fileName = @"symboldirectory/ETFList.csv";
+            LoadFileToDb lftdb = PrepareCompanyDetailsList(columnNames, ref fileName, ",");
+
+            var resultCount = lftdb.SaveRecordsToDb(_repository);
+            Assert.AreEqual(resultCount, lftdb.CompanyDetails.Count);
+            var iwoRecord = _context.CompanyDetails.FirstOrDefault(r => r.Symbol.Equals("IWO"));
+            Assert.IsTrue(iwoRecord.IsExTrdFund);
+        }
+
+        [TestMethod]
         public void SaveMutualFundsToDbEmptyTableTest()
         {
             ClearTable();
@@ -92,43 +107,6 @@ namespace ListedSecuritiesTests
         }
 
         [TestMethod]
-        public void SaveETFRecordsToDbEmptyTableTest()
-        {
-            isETF = true;
-            ClearTable();
-            string[] columnNames = { "Symbol", "Name" };
-            var fileName = @"symboldirectory/ETFList.csv";
-            LoadFileToDb lftdb = PrepareCompanyDetailsList(columnNames, ref fileName, ",");
-
-            var resultCount = lftdb.SaveRecordsToDb(_repository);
-            Assert.AreEqual(resultCount, lftdb.CompanyDetails.Count);
-            var iwoRecord = _context.CompanyDetails.FirstOrDefault(r => r.Symbol.Equals("IWO"));
-            Assert.IsTrue(iwoRecord.IsExTrdFund);
-        }
-
-        [TestMethod]
-        public void SaveRecordsToDbNonEmptyTableTest()
-        {
-            ClearTable();
-            InsertTestRecordToTable(symbol: "F", securityName: "FORD MOTOR CO", isExTrdFund: false, isMutualFund: false);
-            InsertTestRecordToTable(symbol: "FB", securityName: "FACEBOOK INC", isExTrdFund: false, isMutualFund: false);
-            InsertTestRecordToTable(symbol: "ROKU", securityName: "ROKU INC", isExTrdFund: true, isMutualFund: true);
-            _context.SaveChanges();
-
-            string[] columnNames = { "Symbol", "Security Name" };
-            var fileName = @"symboldirectory/nasdaqlisted.txt";
-            LoadFileToDb lftdb = PrepareCompanyDetailsList(columnNames, ref fileName);
-
-            var resultCount = lftdb.SaveRecordsToDb(_repository);
-            var rokuCount = _context.CompanyDetails.Count(r => r.Symbol.Equals("ROKU"));
-            var rokuRecord = _context.CompanyDetails.FirstOrDefault(r => r.Symbol.Equals("ROKU"));
-            Assert.AreEqual(resultCount, lftdb.CompanyDetails.Count);
-            Assert.IsFalse(rokuRecord.IsExTrdFund);
-            Assert.IsFalse(rokuRecord.IsMutualFund);
-            Assert.AreEqual(1, rokuCount);
-        }
-
-        [TestMethod]
         public void UpdateDatabaseWithCompanyDetailsTest()
         {
             ClearTable();
@@ -156,21 +134,6 @@ namespace ListedSecuritiesTests
 
         #region Private Methods
 
-        private LoadFileToDb PrepareCompanyDetailsList(string[] columnNames, ref string fileName, string delimiter = "|")
-        {
-            var temppath = Path.GetTempPath();
-            fileName = temppath + fileName;
-
-            var lftdb = new LoadFileToDb(fileName, columnNames)
-            {
-                Delimiter = delimiter,
-                IsETF = isETF,
-                IsMutaulFund = isMutalFund
-            };
-            var loadResult = lftdb.ParseSecurityListingFile();
-            return lftdb;
-        }
-
         private void ClearTable()
         {
             var itemsToDelete = _context.Set<CompanyDetail>();
@@ -188,6 +151,21 @@ namespace ListedSecuritiesTests
                 IsMutualFund = isMutualFund
             };
             _context.CompanyDetails.Add(cd);
+        }
+
+        private LoadFileToDb PrepareCompanyDetailsList(string[] columnNames, ref string fileName, string delimiter = "|")
+        {
+            var temppath = Path.GetTempPath();
+            fileName = temppath + fileName;
+
+            var lftdb = new LoadFileToDb(fileName, columnNames)
+            {
+                Delimiter = delimiter,
+                IsETF = isETF,
+                IsMutaulFund = isMutalFund
+            };
+            var loadResult = lftdb.ParseSecurityListingFile();
+            return lftdb;
         }
 
         #endregion Private Methods

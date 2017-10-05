@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HandleDailyJobs": {
+      "commandName": "Project",
+      "commandLineArgs": "\"do get and load\""
+    }
+  }
+}

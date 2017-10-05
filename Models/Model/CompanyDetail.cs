@@ -13,9 +13,7 @@ namespace Models.Model
         public int IPOyear { get; set; }
 
         public bool IsExTrdFund { get; set; }
-
         public bool IsMutualFund { get; set; }
-
         public string Sector { get; set; }
 
         [Required]
